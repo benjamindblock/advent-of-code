@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+SBCL_CMD="rlwrap sbcl --load ~/.vim/plugged/vlime/lisp/start-vlime.lisp \
+--eval \'(asdf:load-asd \"$(pwd)/aoc-2022.asd\")\' \
+--eval '(ql:quickload \"aoc-2022\")'"
+
+kitty @ launch --type=tab --tab-title "sbcl" --keep-focus --no-response --allow-remote-control
+kitty @ send-text --match-tab 'title:^sbcl' "$SBCL_CMD\\x0d"
