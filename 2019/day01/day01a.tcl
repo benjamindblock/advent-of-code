@@ -1,6 +1,5 @@
-# Determines the amount of fueld required for
-# a rocket, by its mass.
-proc determine_fuel {mass} {
+# Determines the amount of fuel required for a module, by its mass.
+proc fuel_for_mass {mass} {
   set divided_by_three [expr {$mass / 3.0}]
   set rounded [expr {floor($divided_by_three)}]
   set minus_two [expr {$rounded - 2}]
@@ -21,7 +20,7 @@ set data [split $data "\n"]
 # and add that to the total required fuel.
 foreach line $data {
   if {$line ne ""} {
-    set fuel [determine_fuel $line]
+    set fuel [fuel_for_mass $line]
     set requirement [expr {$requirement + $fuel}]
   }
 }
