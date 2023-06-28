@@ -1,6 +1,8 @@
-proc setparams {val1 val2} {
-  upvar mem loc_mem
-  set loc_mem [lreplace $loc_mem 1 2 $val1 $val2]
+# Sets the values at positions 1 and 2 in memory
+# with val1 and val2, respectively.
+proc prepareMemory {val1 val2} {
+  upvar tempMem _tempMem
+  set _tempMem [lreplace $_tempMem 1 2 $val1 $val2]
 }
 
 # Initializes a sequence of numbers
@@ -19,52 +21,58 @@ proc initseq {length} {
 # Uses upvar to bind local variables to the variables inside the
 # foreach loop. This way, when the local var is updated, the
 # variable in the scope above is also updated.
-proc setvals {var_name1 address1 var_name2 address2} {
-  upvar mem loc_mem $var_name1 loc_var1 $var_name2 loc_var2
-  set loc_var1 [lindex $loc_mem $address1]
-  set loc_var2 [lindex $loc_mem $address2]
+proc setNounVerb {nounName nounAddrName verbName verbAddrName} {
+  upvar memory _memory $nounName _noun $verbName _verb
+  set _noun [lindex $_memory $nounAddrName]
+  set _verb [lindex $_memory $verbAddrName]
 }
 
+# Iterates over the memory in chunks of four integers, which
+# comprises a single instruction for the intcode computer.
+#
+# opcode - The operation to take place
+# ptr1 - position in $memory with the first val for the operation
+# ptr2 - position in $memory with the second val for the operation
+# dest - position in $memory to store the results of the operation
+proc operate {memory} {
+  foreach {opcode ptr1 ptr2 dest} $memory {
+    switch $opcode {
+      1 {
+        setNounVerb noun $ptr1 verb $ptr2
+        set res [expr {$noun + $verb}]
+        set memory [lreplace $memory $dest $dest $res]
+      }
+      2 {
+        setNounVerb noun $ptr1 verb $ptr2
+        set res [expr {$noun * $verb}]
+        set memory [lreplace $memory $dest $dest $res]
+      }
+      99 {
+        return [lindex $memory 0]
+      }
+    }
+  }
+}
+
+# Read input from file into an array.
+set reader [open "data.txt" r]
+set staticMem [split [read $reader] ","]
+close $reader
+
+# Initialize two arrays from [0..99] to
+# loop over to find the correct val.
 set x [initseq 100]
 set y [initseq 100]
-set total 0
 
 foreach {val1} $x {
   foreach {val2} $y {
-    # Read input from file into an array.
-    set reader [open "data.txt" r]
-    set mem [split [read $reader] ","]
-    close $reader
-    setparams $val1 $val2
+    set tempMem $staticMem
+    prepareMemory $val1 $val2
+    set total [operate $tempMem]
 
-    # Iterates over chunks of four integers, which comprises a single
-    # instruction for the opcode computer.
-    #
-    # opcode - The operation to take place
-    # pos1 - position in $mem with the first val for the operation
-    # pos2 - position in $mem with the second val for the operation
-    # dest - position in $mem to store the results of the operation
-    foreach {opcode pos1 src2 dest} $mem {
-      switch $opcode {
-        1 {
-          setvals noun $pos1 verb $src2
-          set res [expr {$noun + $verb}]
-          set mem [lreplace $mem $dest $dest $res]
-        }
-        2 {
-          setvals noun $pos1 verb $src2
-          set res [expr {$noun * $verb}]
-          set mem [lreplace $mem $dest $dest $res]
-        }
-        99 {
-          set total [lindex $mem 0]
-          if {$total == 19690720} {
-            puts "$total for \[$val1, $val2\]"
-            puts "Answer is: [expr {[expr {100 * $val1}] + $val2}]"
-            return
-          }
-        }
-      }
+    if {$total == 19690720} {
+      puts "\[$val1, $val2\]: $total"
+      puts "Answer: [expr {[expr {100 * $val1}] + $val2}]"
     }
   }
 }
