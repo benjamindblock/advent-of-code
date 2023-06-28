@@ -21,7 +21,7 @@ proc determine_fuel {mass {total 0}} {
 }
 
 # Read input from file
-set reader [open "day1.txt" r]
+set reader [open "data.txt" r]
 set data [read $reader]
 close $reader
 

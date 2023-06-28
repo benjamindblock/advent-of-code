@@ -8,7 +8,7 @@ proc fuel_for_mass {mass} {
 }
 
 # Read input from file
-set reader [open "day1.txt" r]
+set reader [open "data.txt" r]
 set data [read $reader]
 close $reader
 
