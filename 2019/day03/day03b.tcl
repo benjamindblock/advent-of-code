@@ -39,6 +39,7 @@ proc handleInstruction {instruction stepsName incrName dirName} {
 # Start path one at the origin.
 set x 0
 set y 0
+set firstWireSteps 0
 global cache
 
 # Step through each point in the first path
@@ -50,13 +51,15 @@ foreach {inst} $firstWirePath {
     x {
       for {set i 0} {$i < $steps} {incr i} {
         incr x $increment
-        dict set cache [list $x $y] 1
+        incr firstWireSteps
+        dict set cache [list $x $y] $firstWireSteps
       }
     }
     y {
       for {set i 0} {$i < $steps} {incr i} {
         incr y $increment
-        dict set cache [list $x $y] 1
+        incr firstWireSteps
+        dict set cache [list $x $y] $firstWireSteps
       }
     }
   }
@@ -65,6 +68,7 @@ foreach {inst} $firstWirePath {
 
 set x 0
 set y 0
+set secondWireSteps 0
 set intersect [list]
 
 # Step through each point on the second path and, for each point, check if
@@ -77,34 +81,31 @@ foreach {inst} $secondWirePath {
     x {
       for {set i 0} {$i < $steps} {incr i} {
         incr x $increment
+        incr secondWireSteps
+
         set point [list $x $y]
         if {[dict exists $cache $point]} {
-          lappend intersect $point
+          lappend intersect [expr {[dict get $cache $point] + $secondWireSteps}]
         }
       }
     }
     y {
       for {set i 0} {$i < $steps} {incr i} {
         incr y $increment
+        incr secondWireSteps
+
         set point [list $x $y]
         if {[dict exists $cache $point]} {
-          lappend intersect $point
+          lappend intersect [expr {[dict get $cache $point] + $secondWireSteps}]
         }
       }
     }
   }
 }
 
-foreach {point} $intersect {
-  set x [lindex $point 0]
-  set y [lindex $point 1]
-  set position [expr {abs($x) + abs($y)}]
+set absoluted [lmap {steps} $intersect {expr {
+  abs($steps)
+}}]
 
-  if {![info exists closestPos]} {
-    set closestPos $position
-  } elseif {$position < $closestPos} {
-    set closestPos $position
-  }
-}
-
-puts "Distance at the closest intersection: $closestPos"
+set leastSteps [lindex [lsort -integer $absoluted] 0]
+puts "Least amount of steps to an intersection is: $leastSteps"
