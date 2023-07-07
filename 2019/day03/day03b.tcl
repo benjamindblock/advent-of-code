@@ -4,8 +4,8 @@ set wirePaths [split [read $reader] "\n"]
 close $reader
 
 # Set the first and second wire paths as lists of instructions.
-set firstWirePath [split [lindex $wirePaths 0] ","]
-set secondWirePath [split [lindex $wirePaths 1] ","]
+set pathOne [split [lindex $wirePaths 0] ","]
+set pathTwo [split [lindex $wirePaths 1] ","]
 
 proc handleInstruction {instruction stepsName incrName dirName} {
   upvar $stepsName _steps
@@ -44,7 +44,7 @@ global cache
 
 # Step through each point in the first path
 # and record its position.
-foreach {inst} $firstWirePath {
+foreach {inst} $pathOne {
   handleInstruction $inst steps increment direction
 
   switch $direction {
@@ -74,7 +74,7 @@ set intersect [list]
 # Step through each point on the second path and, for each point, check if
 # that was traversed during the first path. If so, add it to the list of
 # intersection points.
-foreach {inst} $secondWirePath {
+foreach {inst} $pathTwo {
   handleInstruction $inst steps increment direction
 
   switch $direction {
@@ -103,9 +103,9 @@ foreach {inst} $secondWirePath {
   }
 }
 
-set absoluted [lmap {steps} $intersect {expr {
-  abs($steps)
-}}]
+set absoluted [lmap {steps} $intersect {
+  expr {abs($steps)}
+}]
 
 set leastSteps [lindex [lsort -integer $absoluted] 0]
 puts "Least amount of steps to an intersection is: $leastSteps"

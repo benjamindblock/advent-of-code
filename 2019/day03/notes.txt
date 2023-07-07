@@ -1,0 +1,5 @@
+How to perform a standard Ruby-style .map call? With lmap.
+Example:
+  set list {1 2 3}
+  lmap {el} $list {expr {$el * 2}}
+  => 2 4 6
