@@ -67,11 +67,15 @@ proc parse {structName} {
 while {$pointer < [llength $program]} {
   parse opStruct
 
-  # opcodes perform the following actions:
-  # 1. Addition
-  # 2. Multiplication
-  # 3. Read input
-  # 4. Send output
+  # opcodes perform the following actions with (# params):
+  # 1. Addition (3)
+  # 2. Multiplication (3)
+  # 3. Read input (1)
+  # 4. Send output (1)
+  # 5. Jump-if-true (2)
+  # 6. Jump-if-false (2)
+  # 7. Less than (3)
+  # 8. Equals (3)
   # 99. Halt.
   switch $opStruct(opcode) {
     1 {
@@ -108,6 +112,46 @@ while {$pointer < [llength $program]} {
       set ret [fetch 1 $opStruct(mode1)]
       puts "Value: $ret"
       incr pointer 2
+    }
+    5 {
+      set param1 [fetch 1 $opStruct(mode1)]
+      set param2 [fetch 2 $opStruct(mode2)]
+
+      if {$param1 != 0} {
+        set pointer $param2
+      } else {
+        incr pointer 3
+      }
+    }
+    6 {
+      set param1 [fetch 1 $opStruct(mode1)]
+      set param2 [fetch 2 $opStruct(mode2)]
+
+      if {$param1 == 0} {
+        set pointer $param2
+      } else {
+        incr pointer 3
+      }
+    }
+    7 {
+      set param1 [fetch 1 $opStruct(mode1)]
+      set param2 [fetch 2 $opStruct(mode2)]
+      set dest [fetch 3 $immdtMode]
+
+      set res [expr {$param1 < $param2}]
+      set program [lreplace $program $dest $dest $res]
+
+      incr pointer 4
+    }
+    8 {
+      set param1 [fetch 1 $opStruct(mode1)]
+      set param2 [fetch 2 $opStruct(mode2)]
+      set dest [fetch 3 $immdtMode]
+
+      set res [expr {$param1 == $param2}]
+      set program [lreplace $program $dest $dest $res]
+
+      incr pointer 4
     }
     99 {
       puts "Halting."

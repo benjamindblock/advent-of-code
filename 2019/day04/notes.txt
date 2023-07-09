@@ -1,4 +1,5 @@
-Using `lindex` will not result in out-of-range errors, it will just return a blank string instead. This was useful for listToFreqList.
+Using `lindex` will not result in out-of-range errors, it will just return a
+blank string instead. This was useful for listToFreqList.
 
 Example:
 set list {1}

@@ -1,0 +1,16 @@
+If you want to use a variable in a switch statement, one needs to use the
+single-line version rather than the multi-line block, as any variables inside
+the braces {} will not be expanded due to the standard Tcl parsing.
+
+NOT THIS:
+switch $foo {
+  $bar {
+    puts "BAR"
+  }
+  $baz {
+    puts "BAZ"
+  }
+}
+
+BUT THIS:
+switch $foo $bar { puts "BAR" } $baz { puts "BAZ" }
