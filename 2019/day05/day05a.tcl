@@ -1,14 +1,22 @@
-# Create reader.
-set reader [open "data.txt" r]
-
 # Set global program.
+set reader [open "data.txt" r]
+global program
 set program [split [read $reader] ","]
 close $reader
 
 # Set pointer.
+global pointer
 set pointer 0
 
-proc retrieveVal {program param mode} {
+proc getParam {offset mode} {
+  global program pointer
+
+  # Retrieve the value at the correct position.
+  set pos [expr {$pointer + $offset}]
+  set param [lindex $program $pos]
+
+  # If in position mode, find the value at the position indicated by
+  # the parameter. If in immediate mode, use the parameter's value.
   switch $mode {
     0 {
       return [lindex $program $param]
@@ -19,85 +27,72 @@ proc retrieveVal {program param mode} {
   }
 }
 
+# TODO: Finish by adding the opcode,
+#       modes, and params to the dict.
+proc parseInstruction {structName} {
+  global program pointer
+  upvar $structName localStruct
+
+  # Get the instruction from the program.
+  # 101,2,3,4,99 => 101
+  set inst [lindex $program $pointer]
+
+  # Left pad to five digits to avoid implicit logic around
+  # the leading zeroes.
+  # 101 => 00101
+  set inst [format %05s [string trim $inst]]
+
+  # Get the final opcode integer.
+  # 00101 => 1
+  regexp {^0*(\d+)} [string range $inst 3 end] _ opcode
+
+  # Retrieve the parameter modes.
+  # 00101 => {0} {0} {1}
+  lassign [lreverse [split [string range $inst 1 2] ""]] \
+    mode1 mode2
+
+  set localStruct(opcode) $opcode
+  set localStruct(mode1) $mode1
+  set localStruct(mode2) $mode2
+}
+
 while {$pointer < [llength $program]} {
-  set inst [
-    format %05s [
-      string trim [lindex $program $pointer]
-    ]
-  ]
-  set instLen [string length $inst]
+  parseInstruction opStruct
 
-  # Extract the opcode and convert to a proper integer.
-  # If we have a leading zero (eg., 02) we strip that away
-  # to prevent accidental interpretation as an octal.
-  set opcode [string range $inst [expr {$instLen - 2}] end]
-  regexp {^0*(\d+)} $opcode _ opcode
-
-  # Get the modes for each parameter, in the correct order.
-  set paramModes [
-    lreverse [
-      split [string range $inst 0 [expr {$instLen - 3}]] ""
-    ]
-  ]
-  lassign $paramModes mode1 mode2 mode3
-
-  switch $opcode {
+  switch $opStruct(opcode) {
     1 {
-      set param1Loc [expr {$pointer + 1}]
-      set param2Loc [expr {$pointer + 2}]
-      set param3Loc [expr {$pointer + 3}]
-      lassign [lrange $program $param1Loc $param3Loc] param1 param2 param3
+      set param1 [getParam 1 $opStruct(mode1)]
+      set param2 [getParam 2 $opStruct(mode2)]
+      set result [expr {$param1 + $param2}]
 
-      set val1 [retrieveVal $program $param1 $mode1]
-      set val2 [retrieveVal $program $param2 $mode2]
-      set dest $param3
-
-      set result [expr {$val1 + $val2}]
+      set dest [getParam 3 1]
       set program [lreplace $program $dest $dest $result]
 
       incr pointer 4
     }
     2 {
-      set param1Loc [expr {$pointer + 1}]
-      set param2Loc [expr {$pointer + 2}]
-      set param3Loc [expr {$pointer + 3}]
-      lassign [lrange $program $param1Loc $param3Loc] param1 param2 param3
+      set param1 [getParam 1 $opStruct(mode1)]
+      set param2 [getParam 2 $opStruct(mode2)]
+      set result [expr {$param1 * $param2}]
 
-      set val1 [retrieveVal $program $param1 $mode1]
-      set val2 [retrieveVal $program $param2 $mode2]
-      set dest $param3
-
-      set result [expr {$val1 * $val2}]
+      set dest [getParam 3 1]
       set program [lreplace $program $dest $dest $result]
 
       incr pointer 4
     }
     3 {
-      # Find the location in memory to store the value.
-      set dest [lindex $program [expr {$pointer + 1}]]
-
-      # Get value from stdin.
-      puts -nonewline "Store $dest: "
+      puts -nonewline "Input: "
       flush stdout
       gets stdin input
 
-      # Store the value in memory at that location.
+      set dest [getParam 1 1]
       set program [lreplace $program $dest $dest $input]
 
       incr pointer 2
     }
     4 {
-      set location [expr {$pointer + 1}]
-      switch $mode1 {
-        0 {
-          set src [lindex $program $location]
-          set val [lindex $program $src]
-        }
-        1 {
-          set val [lindex $program $location]
-        }
-      }
-      puts "Value at $location: $val"
+      set ret [getParam 1 $opStruct(mode1)]
+      puts "Value: $ret"
       incr pointer 2
     }
     99 {
