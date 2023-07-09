@@ -2,18 +2,30 @@ global orbits
 
 # Helper function to count the number of objects
 # that a planet is orbiting.
-proc countOrbits {planet} {
+proc countOrbits {startPlanet {endPlanet "COM"}} {
   global orbits
-  set curPlanet $planet
+  set curPlanet $startPlanet
   set count 0
 
-  while {[info exists orbits($curPlanet)]} {
+  while {([info exists orbits($curPlanet)]) && ($curPlanet ne $endPlanet)} {
     incr count
     set curPlanet [set orbits($curPlanet)]
   }
 
   return $count
 }
+# proc countOrbits {planet} {
+#   global orbits
+#   set curPlanet $planet
+#   set count 0
+
+#   while {[info exists orbits($curPlanet)]} {
+#     incr count
+#     set curPlanet [set orbits($curPlanet)]
+#   }
+
+#   return $count
+# }
 
 # Set program data.
 set reader [open "data.txt" r]
