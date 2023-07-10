@@ -1,0 +1,5 @@
+Inputs: every unique list comprised of the integers 01234, where each number
+appears only once in the list.
+
+Update the Intcode Computer to accept input from a command as well as from
+stdin.
