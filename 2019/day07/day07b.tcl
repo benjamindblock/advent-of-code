@@ -215,3 +215,31 @@ proc permutations {input} {
   }
   return $newPerms
 }
+
+# Calculate all possible input combinations of the list {0 1 2 3 4}
+set phaseSettingSequences [permutations {0 1 2 3 4}]
+
+# When setting up Ampilifier A, provide 0 as the input signal.
+# For the remaining Amplifiers, the input signal will be the
+# output signal of the previous amplifier.
+set outputSignal 0
+
+# Final output is the maxThrusterSignal
+set maxThrusterSignal 0
+
+foreach {phaseSettingSequence} $phaseSettingSequences {
+  foreach {phaseSetting} $phaseSettingSequence {
+    set computer [computer new $program [list $phaseSetting $outputSignal]]
+    set outputSignal [$computer main]
+  }
+
+  if {$outputSignal > $maxThrusterSignal} {
+    set maxThrusterSignal $outputSignal
+  }
+
+  # Reset the output signal back to zero for the next
+  # amplifier sequence.
+  set outputSignal 0
+}
+
+puts "Maximum thrust signal: $maxThrusterSignal"
