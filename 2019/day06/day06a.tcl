@@ -14,18 +14,6 @@ proc countOrbits {startPlanet {endPlanet "COM"}} {
 
   return $count
 }
-# proc countOrbits {planet} {
-#   global orbits
-#   set curPlanet $planet
-#   set count 0
-
-#   while {[info exists orbits($curPlanet)]} {
-#     incr count
-#     set curPlanet [set orbits($curPlanet)]
-#   }
-
-#   return $count
-# }
 
 # Set program data.
 set reader [open "data.txt" r]
