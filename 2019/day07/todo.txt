@@ -1,8 +1,0 @@
-Inputs: every unique list comprised of the integers 01234, where each number
-appears only once in the list.
-
-Update the Intcode Computer to accept input from a command as well as from
-stdin.
-
-Update the Intcode Computer to store output in a variable that can be returned
-from the computer, or accessed after the run has completed.

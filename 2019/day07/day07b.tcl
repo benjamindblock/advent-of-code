@@ -1,12 +1,51 @@
+# Set programCache. This is an static version of the
+# original program that can be reused by the computer.
+set reader [open "data.txt" r]
+set program [split [read $reader] ","]
+close $reader
+
+# Finds all permutations of a given list.
+proc permutations {input} {
+  # Base case, if there is no more input,
+  # return a blank list.
+  if {[llength $input] == 0} {
+    return [list [list]]
+  }
+
+  # Split list into head and remaining.
+  set remaining [lassign $input head]
+
+  # Get new permutations from the remaining list.
+  set permsFromRemaining [permutations $remaining]
+
+  # Insert the head into each location, in each of
+  # the new permutations.
+  set newPerms [list]
+  foreach {perm} $permsFromRemaining {
+    set permLen [llength $perm]
+    
+    for {set i $permLen} {$i >= 0} {incr i -1} {
+      # NOTE: This could be factored out to do some sort
+      # "proc insertAtPos {list}" function.
+      set b [lrange $perm 0 "end-$i"]
+      set m [list $head]
+      set e [lrange $perm [expr {$permLen - $i}] $permLen]
+      lappend newPerms [list {*}$b {*}$m {*}$e]
+    }
+  }
+  return $newPerms
+}
+
 # Class to create a computer with a program and run
 # it with a set of inputs.
 oo::class create computer {
-  variable program pointer posMode immdtMode \
-    inputs output
+  variable program phaseSetting pointer posMode immdtMode \
+    inputs output opCode
 
-  constructor {programArg inputsArg} {
+  constructor {programArg phaseSettingArg} {
     set program $programArg
-    set inputs $inputsArg
+    set phaseSetting $phaseSettingArg
+    set inputs [list $phaseSettingArg]
     set pointer 0
 
     # Parameter modes
@@ -18,13 +57,40 @@ oo::class create computer {
     puts $program
   }
 
+  method getPhaseSetting {} {
+    return $phaseSetting
+  }
+
+  method getOpCode {} {
+    return $opCode
+  }
+
+  method getPointer {} {
+    return $pointer
+  }
+
+  method getOutput {} {
+    return $output
+  }
+
   # Run the computer program.
-  method main {} {
-    set pointer 0
+  method main {inputArg} {
+    # Add the new input to our $inputs list.
+    lappend inputs $inputArg
 
     while {$pointer < [llength $program]} {
       my parse opStruct
       my perform opStruct
+
+      # False positive warning.
+      ##nagelfar ignore Unknown variable
+      set opcode $opStruct(opcode)
+
+      # Return here and pause execution. We will wait until
+      # the next set of instructions arrive.
+      if {$opcode == 4 || $opcode == 99} {
+        break
+      }
     }
 
     return $output
@@ -76,6 +142,9 @@ oo::class create computer {
   method perform {structName} {
     upvar $structName opStruct
 
+    # Store the current opCode
+    set opCode $opStruct(opcode)
+
     # opcodes perform the following actions with (# params):
     # 1. Addition (3)
     # 2. Multiplication (3)
@@ -121,9 +190,8 @@ oo::class create computer {
       4 {
         set ret [my fetch 1 $opStruct(mode1)]
 
-        # Set the global output variable to hold the
-        # output of the command as well, so we can acess it
-        # in other places.
+        # Set the global output variable to hold the output of the
+        # command as well, so we can return it from the computer.
         set output $ret
 
         incr pointer 2
@@ -178,68 +246,54 @@ oo::class create computer {
   }
 }
 
-# Set programCache. This is an static version of the
-# original program that can be reused by the computer.
-set reader [open "data.txt" r]
-set program [split [read $reader] ","]
-close $reader
+# Calculate all possible input combinations of the list {5 6 7 8 9}
+set phases {5 6 7 8 9}
+set phaseSettingSequences [permutations $phases]
+set lastComputerIndex [expr {[llength $phases] - 1}]
 
-# Finds all permutations of a given list.
-proc permutations {input} {
-  # Base case, if there is no more input,
-  # return a blank list.
-  if {[llength $input] == 0} {
-    return [list [list]]
-  }
-
-  # Split list into head and remaining.
-  set remaining [lassign $input head]
-
-  # Get new permutations from the remaining list.
-  set permsFromRemaining [permutations $remaining]
-
-  # Insert the head into each location, in each of
-  # the new permutations.
-  set newPerms [list]
-  foreach {perm} $permsFromRemaining {
-    set permLen [llength $perm]
-    
-    for {set i $permLen} {$i >= 0} {incr i -1} {
-      # NOTE: This could be factored out to do some sort
-      # "proc insertAtPos {list}" function.
-      set b [lrange $perm 0 "end-$i"]
-      set m [list $head]
-      set e [lrange $perm [expr {$permLen - $i}] $permLen]
-      lappend newPerms [list {*}$b {*}$m {*}$e]
-    }
-  }
-  return $newPerms
-}
-
-# Calculate all possible input combinations of the list {0 1 2 3 4}
-set phaseSettingSequences [permutations {0 1 2 3 4}]
-
-# When setting up Ampilifier A, provide 0 as the input signal.
-# For the remaining Amplifiers, the input signal will be the
-# output signal of the previous amplifier.
-set outputSignal 0
-
-# Final output is the maxThrusterSignal
+# We want the final output to be the maxThrusterSignal
 set maxThrusterSignal 0
 
+# Iterate over each possible sequence of phase settings.
 foreach {phaseSettingSequence} $phaseSettingSequences {
-  foreach {phaseSetting} $phaseSettingSequence {
-    set computer [computer new $program [list $phaseSetting $outputSignal]]
-    set outputSignal [$computer main]
+
+  # For each phase setting sequence, intialize a new set of
+  # computers (eg., amplifiers)
+  set computers [
+    lmap {phaseSetting} $phaseSettingSequence {
+      computer new $program $phaseSetting
+    }
+  ]
+
+  # Set the first "output" to be zero to simulate the
+  # input to Amplifier A.
+  set outputSignal 0
+
+  # Loop for all computers infinitely. Could fancify this
+  # by doing {set x 0} {true} {incr x} and getting the
+  # appropriate computer via some modulo operation on $x.
+  for {set x 0} {$x < [llength $computers]} {incr x} {
+    set computer [lindex $computers $x]
+    set outputSignal [$computer main $outputSignal]
+
+    # When we reach a halting code, get the last output from
+    # the last amplifier as the final code.
+    if {[$computer getOpCode] == 99} {
+      set outputSignal [[lindex $computers $lastComputerIndex] getOutput]
+      break
+    }
+
+    # NOTE: Can remove with fancification.
+    # Reset our loop back to the beginning if we have processed
+    # the last computer.
+    if {$x == $lastComputerIndex} {
+      set x -1
+    }
   }
 
   if {$outputSignal > $maxThrusterSignal} {
     set maxThrusterSignal $outputSignal
   }
-
-  # Reset the output signal back to zero for the next
-  # amplifier sequence.
-  set outputSignal 0
 }
 
 puts "Maximum thrust signal: $maxThrusterSignal"
