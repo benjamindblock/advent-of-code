@@ -1,0 +1,2 @@
+Generalize some of the functions (searchImage, initImage) into more generalized
+list operations that are not so domain specific to AoC
