@@ -1,3 +1,5 @@
+.PHONY: all clean
+
 include session.sh
 
 DATA = day01/input.txt
@@ -16,7 +18,7 @@ all: $(DATA)
 %/input.txt:
 	$(SET_URL)
 	@curl "https://adventofcode.com/2015/$(URL)/input" --silent \
-			--cookie "$(SESSION)" -o "$@" -A "https://benjamindblock.com"
+		--cookie "$(SESSION)" -o "$@" -A "https://benjamindblock.com"
 
 # Removes all data files.
 clean:
