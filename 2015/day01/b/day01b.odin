@@ -24,14 +24,18 @@ solve :: proc(data: string) -> (int) {
   }
 
   floor := 0
-  for char in data {
+  for char, index in data {
     floor = floor + instructions[char]
+
+    if (floor == -1) {
+      return index + 1
+    }
   }
-  return floor
+  return -1
 }
 
 main :: proc() {
-	input, ok := slurp_file("input.txt")
-  floor := solve(input)
-  fmt.println("Santa is now on floor:", floor)
+	input, ok := slurp_file("../input.txt")
+  step := solve(input)
+  fmt.println("Santa entered the basement on step:", step)
 }
