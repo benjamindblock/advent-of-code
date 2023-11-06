@@ -16,11 +16,13 @@ slurp_file :: proc(filepath: string) -> (content: string, success: bool) {
 	return string(data), true
 }
 
+OPEN_PAREN : rune : '('
+CLOSED_PAREN : rune : ')'
 
 solve :: proc(data: string) -> (int) {
-  instructions := map[rune]int {
-    cast(rune) '(' = 1,
-    cast(rune) ')' = -1
+  instructions : map[rune]int = {
+    OPEN_PAREN = 1,
+    CLOSED_PAREN = -1
   }
 
   floor := 0

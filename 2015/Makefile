@@ -2,7 +2,8 @@
 
 include session.sh
 
-DATA = day01/input.txt
+DATA = day01/input.txt \
+			 day02/input.txt
 
 # day01/input.txt => day/1
 PARSE = $(shell echo "$@" \
