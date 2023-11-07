@@ -3,7 +3,8 @@
 include session.sh
 
 DATA = day01/input.txt \
-			 day02/input.txt
+			 day02/input.txt \
+			 day03/input.txt
 
 # day01/input.txt => day/1
 PARSE = $(shell echo "$@" \
@@ -17,6 +18,7 @@ all: $(DATA)
 
 # Downloads all the input files.
 %/input.txt:
+	@mkdir -p $(shell dirname "$@")
 	$(SET_URL)
 	@curl "https://adventofcode.com/2015/$(URL)/input" --silent \
 		--cookie "$(SESSION)" -o "$@" -A "https://benjamindblock.com"
