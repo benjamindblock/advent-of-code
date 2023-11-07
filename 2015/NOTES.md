@@ -1,4 +1,36 @@
 # Odin
+## Memory management
+### Checking for unfreed allocations
+Add the following snippet inside `main :: proc()`, and then make sure to use the `-debug` flag with either `odin build` or `odin run`.
+
+```odin
+main :: proc() {
+  when ODIN_DEBUG {
+    track: mem.Tracking_Allocator
+    mem.tracking_allocator_init(&track, context.allocator)
+    context.allocator = mem.tracking_allocator(&track)
+    defer {
+      if len(track.allocation_map) > 0 {
+        fmt.eprintf("=== %v allocations not freed: ===\n", len(track.allocation_map))
+        for _, entry in track.allocation_map {
+          fmt.eprintf("- %v bytes @ %v\n", entry.size, entry.location)
+        }
+      }
+      if len(track.bad_free_array) > 0 {
+        fmt.eprintf("=== %v incorrect frees: ===\n", len(track.bad_free_array))
+        for entry in track.bad_free_array {
+          fmt.eprintf("- %p @ %v\n", entry.memory, entry.location)
+        }
+      }
+      mem.tracking_allocator_destroy(&track)
+    }
+  }
+
+  // Rest of code
+  ...
+}
+```
+
 ## Variables
 ### Default values
 Odin uses default values for all variables ([see here](https://odin-lang.org/docs/overview/#default-values)). This makes it easy to setup a map that counts occurrences, for example, because the `int` values will always default to zero.
