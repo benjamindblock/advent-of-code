@@ -32,6 +32,28 @@ main :: proc() {
 ```
 
 ## Conversions between types
+### `string` to `[]rune`
+These pieces of code do the same thing:
+```odin
+import "core:fmt"
+
+str := "Hello, world!"
+for char in str {
+  fmt.println(char)
+}
+```
+
+```odin
+import "core:fmt"
+import "core:unicode/ut8"
+
+str := "Hello, world!"
+in_runes := utf8.string_to_runes(str)
+for char in in_runes {
+  fmt.println(char)
+}
+```
+
 ### `int` to `sting`
 Use `strconv.itoa`, which takes in a slice buffer of bytes and the integer in question.
 
