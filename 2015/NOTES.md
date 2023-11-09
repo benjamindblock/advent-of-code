@@ -49,9 +49,24 @@ import "core:unicode/ut8"
 
 str := "Hello, world!"
 in_runes := utf8.string_to_runes(str)
+defer delete(in_runes)
 for char in in_runes {
   fmt.println(char)
 }
+```
+
+### `[]rune` to `string`
+To turn a list of runes into a string
+```odin
+import "core:fmt"
+import "core:unicode/ut8"
+
+chars := []rune{'a', 'b', 'c'}
+str := utf8.runes_to_string(chars)
+defer delete(str)
+
+// => "abc"
+fmt.println(str)
 ```
 
 ### `int` to `sting`
