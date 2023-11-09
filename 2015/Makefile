@@ -4,7 +4,8 @@ include session.sh
 
 DATA = day01/input.txt \
 			 day02/input.txt \
-			 day03/input.txt
+			 day03/input.txt \
+			 day04/input.txt
 
 # day01/input.txt => day/1
 PARSE = $(shell echo "$@" \

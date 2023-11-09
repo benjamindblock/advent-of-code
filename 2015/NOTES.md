@@ -31,6 +31,32 @@ main :: proc() {
 }
 ```
 
+## Conversions between types
+### `int` to `sting`
+Use `strconv.itoa`, which takes in a slice buffer of bytes and the integer in question.
+
+NOTE: The size of the buffer is the maximum length of the returned string. If an integer has 100 digits in it, create a buffer of `buffer: [100]byte`.
+
+Usage:
+```odin
+import "core:strconv"
+
+buffer: [16]byte
+number := 105
+str := strconv.itoa(buffer[:], number)
+```
+
+## Printing & String Formatting
+### `fmt`
+#### Knowing what to use
+- `fmt.print*`: Prints to the console
+- `fmt.wprint*`: Prints to an io.Writer (which could be implemented to do a multitude of things when written to)
+- `fmt.sbprint*`: Prints to a strings.Builder
+- `fmt.aprint*`, `fmt.tprint*`: Don't print to any external thing (they just return the string you "printed")
+
+#### Args
+`%[char]` is the "verb", and any values before the verb are arguments. View all flags [in the docs](https://pkg.odin-lang.org/core/fmt/).
+
 ## Variables
 ### Default values
 Odin uses default values for all variables ([see here](https://odin-lang.org/docs/overview/#default-values)). This makes it easy to setup a map that counts occurrences, for example, because the `int` values will always default to zero.
@@ -62,3 +88,6 @@ var^ += 1
 // "x is: 1"
 fmt.println("x is:", var^)
 ```
+
+## Miscellania
+- `[]u8` is the same as `[]byte`
