@@ -107,6 +107,34 @@ occurrences["foo"] += 1
 fmt.println(occurrences)
 ```
 
+## Enumerations
+### Mapping from enum value to string
+```odin
+Command :: enum {On, Off}
+Command_Str :: [Command]string {
+  .On = "turn on",
+  .Off = "turn off"
+}
+
+fmt.println(Command_Str[Command.On])
+```
+
+NOTE: This cannot be done:
+```odin
+cmd := Command.On
+// Raises "Error: Cannot index a constant 'Command_Mapping'"
+fmt.println(Command_Str[cmd])
+```
+
+One must do this instead:
+```odin
+str := Command_Str
+cmd := Command.On
+fmt.println(str[cmd])
+```
+
+This is because constants (eg., `Command_Str`) are only known at compile time, not runtime. There is a lot of discussion about this and the confusion that it can cause. Not very intuitive (maybe write a blog post about it?).
+
 
 ## Pointers
 ### Dynamically reference a variable
