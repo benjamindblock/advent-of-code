@@ -156,3 +156,4 @@ fmt.println("x is:", var^)
 
 ## Miscellania
 - `[]u8` is the same as `[]byte`
+- Inputs to procs are immutable
