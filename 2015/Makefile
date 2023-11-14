@@ -7,7 +7,8 @@ DATA = day01/input.txt \
 			 day03/input.txt \
 			 day04/input.txt \
 			 day05/input.txt \
-			 day06/input.txt
+			 day06/input.txt \
+			 day07/input.txt
 
 # day01/input.txt => day/1
 PARSE = $(shell echo "$@" \
