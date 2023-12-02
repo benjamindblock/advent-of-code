@@ -67,5 +67,5 @@ BEGIN {
 }
 
 END {
-  print "Answer: " sum
+  print "Answer:", sum
 }
